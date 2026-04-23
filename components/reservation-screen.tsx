@@ -11,7 +11,7 @@ import type { Flight, User } from "@/lib/store"
 interface ReservationScreenProps {
   flight: Flight
   currentUser: User
-  onConfirm: (asiento: string, precioFinal: number, descuentoAplicado: boolean) => void
+  onConfirm: (asiento: string, precioFinal: number, descuentoAplicado: boolean) => { success: boolean; error?: string }
   onBack: () => void
 }
 
@@ -43,7 +43,10 @@ export function ReservationScreen({
       return
     }
 
-    onConfirm(asiento, precioFinal, descuentoAplicado)
+    const result = onConfirm(asiento, precioFinal, descuentoAplicado)
+    if (!result.success && result.error) {
+      setError(result.error)
+    }
   }
 
   return (

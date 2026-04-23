@@ -20,7 +20,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Plane, Edit, RefreshCw, Plus, XCircle, Users } from "lucide-react"
+import { ArrowLeft, Plane, Edit, RefreshCw, Plus, XCircle, Users, Trash2 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { Flight, Reservation, User } from "@/lib/store"
 
@@ -28,13 +28,14 @@ interface AdminScreenProps {
   flights: Flight[]
   reservations: Reservation[]
   users: User[]
-  onUpdateFlight: (flight: Flight) => void
-  onAddFlight: (flight: Omit<Flight, "id">) => void
+  onUpdateFlight: (flight: Flight) => { success: boolean; error?: string }
+  onAddFlight: (flight: Omit<Flight, "id">) => { success: boolean; error?: string }
+  onDeleteFlight: (flightId: string) => { success: boolean; error?: string }
   onCancelReservation: (reservationId: string) => void
   onBack: () => void
 }
 
-export function AdminScreen({ flights, reservations, users, onUpdateFlight, onAddFlight, onCancelReservation, onBack }: AdminScreenProps) {
+export function AdminScreen({ flights, reservations, users, onUpdateFlight, onAddFlight, onDeleteFlight, onCancelReservation, onBack }: AdminScreenProps) {
   const [editingFlight, setEditingFlight] = useState<Flight | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -51,34 +52,45 @@ export function AdminScreen({ flights, reservations, users, onUpdateFlight, onAd
   const [editHora, setEditHora] = useState("")
   const [editPrecio, setEditPrecio] = useState("")
 
+  // Error states
+  const [addError, setAddError] = useState("")
+  const [editError, setEditError] = useState("")
+
   const handleEditClick = (flight: Flight) => {
     setEditingFlight(flight)
     setEditDestino(flight.destino)
     setEditHora(flight.hora)
     setEditPrecio(flight.precio.toString())
+    setEditError("")
     setIsEditDialogOpen(true)
   }
 
   const handleUpdateFlight = () => {
     if (editingFlight) {
-      onUpdateFlight({
+      setEditError("")
+      const result = onUpdateFlight({
         ...editingFlight,
         destino: editDestino,
         hora: editHora,
         precio: Number(editPrecio),
       })
-      setIsEditDialogOpen(false)
-      setEditingFlight(null)
+      if (result.success) {
+        setIsEditDialogOpen(false)
+        setEditingFlight(null)
+      } else if (result.error) {
+        setEditError(result.error)
+      }
     }
   }
 
   const handleAddFlight = () => {
+    setAddError("")
     if (newNumero && newDestino && newHora && newPrecio) {
       const asientosArray = newAsientos
         ? newAsientos.split(",").map((s) => s.trim())
         : ["1A", "1B", "2A", "2B"]
 
-      onAddFlight({
+      const result = onAddFlight({
         numero: newNumero,
         destino: newDestino,
         hora: newHora,
@@ -86,13 +98,24 @@ export function AdminScreen({ flights, reservations, users, onUpdateFlight, onAd
         asientosDisponibles: asientosArray,
       })
 
-      // Reset form
-      setNewNumero("")
-      setNewDestino("")
-      setNewHora("")
-      setNewPrecio("")
-      setNewAsientos("")
-      setIsAddDialogOpen(false)
+      if (result.success) {
+        // Reset form
+        setNewNumero("")
+        setNewDestino("")
+        setNewHora("")
+        setNewPrecio("")
+        setNewAsientos("")
+        setIsAddDialogOpen(false)
+      } else if (result.error) {
+        setAddError(result.error)
+      }
+    }
+  }
+
+  const handleDeleteFlight = (flightId: string) => {
+    const result = onDeleteFlight(flightId)
+    if (!result.success && result.error) {
+      alert(result.error)
     }
   }
 
@@ -212,6 +235,9 @@ export function AdminScreen({ flights, reservations, users, onUpdateFlight, onAd
                         />
                       </Field>
                     </FieldGroup>
+                    {addError && (
+                      <p className="text-destructive text-sm mt-2 text-center">{addError}</p>
+                    )}
                     <Button onClick={handleAddFlight} className="w-full mt-4">
                       Agregar Vuelo
                     </Button>
@@ -247,6 +273,32 @@ export function AdminScreen({ flights, reservations, users, onUpdateFlight, onAd
                                 <Edit className="w-4 h-4 mr-1" />
                                 Editar
                               </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="destructive" size="sm">
+                                    <Trash2 className="w-4 h-4 mr-1" />
+                                    Eliminar
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Eliminar Vuelo</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      ¿Está seguro que desea eliminar el vuelo #{flight.numero}?
+                                      Esta acción no se puede deshacer.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDeleteFlight(flight.id)}
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                    >
+                                      Sí, eliminar
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </div>
                           </TableCell>
                         </TableRow>
@@ -318,6 +370,9 @@ export function AdminScreen({ flights, reservations, users, onUpdateFlight, onAd
                     />
                   </Field>
                 </FieldGroup>
+                {editError && (
+                  <p className="text-destructive text-sm mt-2 text-center">{editError}</p>
+                )}
                 <Button onClick={handleUpdateFlight} className="w-full mt-4">
                   <RefreshCw className="w-4 h-4 mr-2" />
                   Actualizar

@@ -42,7 +42,13 @@ export default function Home() {
   }
 
   // Register handler
-  const handleRegister = (userData: Omit<User, "id" | "millas">) => {
+  const handleRegister = (userData: Omit<User, "id" | "millas">): { success: boolean; error?: string } => {
+    // CU 2 Alternativo: Validar correo duplicado
+    const existingUser = users.find((u) => u.correo === userData.correo)
+    if (existingUser) {
+      return { success: false, error: "Correo ya registrado" }
+    }
+
     const newUser: User = {
       ...userData,
       id: `user-${Date.now()}`,
@@ -50,7 +56,12 @@ export default function Home() {
     }
     setUsers([...users, newUser])
     setCurrentUser(newUser)
+    
+    // Simular envio de correo de confirmacion
+    console.log(`[Sistema] Correo de confirmacion enviado a: ${userData.correo}`)
+    
     setCurrentScreen("dashboard")
+    return { success: true }
   }
 
   // Logout handler
@@ -71,61 +82,104 @@ export default function Home() {
     asiento: string,
     precioFinal: number,
     descuentoAplicado: boolean
-  ) => {
-    if (selectedFlight && currentUser) {
-      // Create new reservation
-      const newReservation: Reservation = {
-        id: `res-${Date.now()}`,
-        usuarioId: currentUser.id,
-        vueloId: selectedFlight.id,
-        asiento,
-        precioFinal,
-        descuentoAplicado,
-        fecha: new Date(),
-        estado: "confirmado",
-      }
-      setReservations([...reservations, newReservation])
-
-      // Update flight's available seats
-      const updatedFlights = flights.map((f) => {
-        if (f.id === selectedFlight.id) {
-          return {
-            ...f,
-            asientosDisponibles: f.asientosDisponibles.filter((s) => s !== asiento),
-          }
-        }
-        return f
-      })
-      setFlights(updatedFlights)
-
-      // Update user's miles if discount was applied
-      if (descuentoAplicado && currentUser.tipoCliente === "corporativo") {
-        const updatedUsers = users.map((u) => {
-          if (u.id === currentUser.id) {
-            return { ...u, millas: u.millas - 1000 }
-          }
-          return u
-        })
-        setUsers(updatedUsers)
-        setCurrentUser({ ...currentUser, millas: currentUser.millas - 1000 })
-      }
-
-      setCurrentScreen("confirmation")
+  ): { success: boolean; error?: string } => {
+    if (!selectedFlight || !currentUser) {
+      return { success: false, error: "Error en el sistema" }
     }
+
+    // CU 5 Alternativo: Verificar disponibilidad del asiento
+    const currentFlight = flights.find((f) => f.id === selectedFlight.id)
+    if (!currentFlight || !currentFlight.asientosDisponibles.includes(asiento)) {
+      return { success: false, error: "Asiento no disponible" }
+    }
+
+    // CU 5 Alternativo: Validar millas insuficientes si intenta aplicar descuento
+    if (descuentoAplicado && currentUser.millas < 1000) {
+      return { success: false, error: "Millas insuficientes" }
+    }
+
+    // Create new reservation
+    const newReservation: Reservation = {
+      id: `res-${Date.now()}`,
+      usuarioId: currentUser.id,
+      vueloId: selectedFlight.id,
+      asiento,
+      precioFinal,
+      descuentoAplicado,
+      fecha: new Date(),
+      estado: "confirmado",
+    }
+    setReservations([...reservations, newReservation])
+
+    // Update flight's available seats
+    const updatedFlights = flights.map((f) => {
+      if (f.id === selectedFlight.id) {
+        return {
+          ...f,
+          asientosDisponibles: f.asientosDisponibles.filter((s) => s !== asiento),
+        }
+      }
+      return f
+    })
+    setFlights(updatedFlights)
+
+    // Update user's miles if discount was applied
+    if (descuentoAplicado && currentUser.tipoCliente === "corporativo") {
+      const updatedUsers = users.map((u) => {
+        if (u.id === currentUser.id) {
+          return { ...u, millas: u.millas - 1000 }
+        }
+        return u
+      })
+      setUsers(updatedUsers)
+      setCurrentUser({ ...currentUser, millas: currentUser.millas - 1000 })
+    }
+
+    // Simular envio de correo de confirmacion
+    console.log(`[Sistema] Correo de confirmacion de reserva enviado a: ${currentUser.correo}`)
+
+    setCurrentScreen("confirmation")
+    return { success: true }
   }
 
   // Admin flight update handler
-  const handleUpdateFlight = (updatedFlight: Flight) => {
+  const handleUpdateFlight = (updatedFlight: Flight): { success: boolean; error?: string } => {
+    // CU 7 Alternativo: Validar conflicto de horario
+    const existingFlight = flights.find((f) => f.id !== updatedFlight.id && f.hora === updatedFlight.hora)
+    if (existingFlight) {
+      return { success: false, error: "Ya existe un vuelo programado a esa hora" }
+    }
+    
     setFlights(flights.map((f) => (f.id === updatedFlight.id ? updatedFlight : f)))
+    return { success: true }
   }
 
   // Admin add flight handler
-  const handleAddFlight = (flightData: Omit<Flight, "id">) => {
+  const handleAddFlight = (flightData: Omit<Flight, "id">): { success: boolean; error?: string } => {
+    // CU 7 Alternativo: Validar conflicto de horario
+    const existingFlight = flights.find((f) => f.hora === flightData.hora)
+    if (existingFlight) {
+      return { success: false, error: "Ya existe un vuelo programado a esa hora" }
+    }
+    
     const newFlight: Flight = {
       ...flightData,
       id: `flight-${Date.now()}`,
     }
     setFlights([...flights, newFlight])
+    return { success: true }
+  }
+
+  // Admin delete flight handler
+  const handleDeleteFlight = (flightId: string): { success: boolean; error?: string } => {
+    // CU 7 Alternativo: No permitir eliminar vuelo con reservas activas
+    const hasActiveReservations = reservations.some((r) => r.vueloId === flightId && r.estado === "confirmado")
+    if (hasActiveReservations) {
+      return { success: false, error: "No se puede eliminar el vuelo porque tiene reservaciones activas" }
+    }
+    
+    setFlights(flights.filter((f) => f.id !== flightId))
+    return { success: true }
   }
 
   // Admin cancel reservation handler
@@ -150,6 +204,12 @@ export default function Home() {
           ? { ...r, estado: "cancelado" as const, canceladoPor } 
           : r
       ))
+
+      // Simular envio de correo de cancelacion
+      const user = users.find((u) => u.id === reservation.usuarioId)
+      if (user) {
+        console.log(`[Sistema] Correo de cancelacion enviado a: ${user.correo}`)
+      }
     }
   }
 
@@ -240,6 +300,7 @@ export default function Home() {
           users={users}
           onUpdateFlight={handleUpdateFlight}
           onAddFlight={handleAddFlight}
+          onDeleteFlight={handleDeleteFlight}
           onCancelReservation={(id) => handleCancelReservation(id, "agente")}
           onBack={() => setCurrentScreen("search")}
         />

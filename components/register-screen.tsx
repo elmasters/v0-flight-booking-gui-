@@ -11,7 +11,7 @@ import { ArrowLeft, UserPlus } from "lucide-react"
 import type { User } from "@/lib/store"
 
 interface RegisterScreenProps {
-  onRegister: (user: Omit<User, "id" | "millas">) => void
+  onRegister: (user: Omit<User, "id" | "millas">) => { success: boolean; error?: string }
   onBackClick: () => void
 }
 
@@ -33,7 +33,7 @@ export function RegisterScreen({ onRegister, onBackClick }: RegisterScreenProps)
       return
     }
 
-    onRegister({
+    const result = onRegister({
       nombre,
       direccion,
       telefono,
@@ -41,6 +41,10 @@ export function RegisterScreen({ onRegister, onBackClick }: RegisterScreenProps)
       tipoCliente,
       password,
     })
+
+    if (!result.success && result.error) {
+      setError(result.error)
+    }
   }
 
   return (
