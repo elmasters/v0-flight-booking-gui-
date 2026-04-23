@@ -10,9 +10,10 @@ import { Plane } from "lucide-react"
 interface LoginScreenProps {
   onLogin: (correo: string, password: string) => boolean
   onRegisterClick: () => void
+  onViewFlightsClick: () => void
 }
 
-export function LoginScreen({ onLogin, onRegisterClick }: LoginScreenProps) {
+export function LoginScreen({ onLogin, onRegisterClick, onViewFlightsClick }: LoginScreenProps) {
   const [correo, setCorreo] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -77,6 +78,14 @@ export function LoginScreen({ onLogin, onRegisterClick }: LoginScreenProps) {
             </Button>
 
             <div className="mt-6 text-center">
+              <button
+                type="button"
+                onClick={onViewFlightsClick}
+                className="text-sm text-primary hover:underline flex items-center justify-center gap-2 mx-auto mb-4"
+              >
+                <Plane className="w-4 h-4" />
+                Ver vuelos disponibles sin registrarte
+              </button>
               <p className="text-muted-foreground text-sm">
                 ¿No tienes cuenta?
               </p>

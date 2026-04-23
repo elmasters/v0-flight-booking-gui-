@@ -8,9 +8,10 @@ import { ReservationScreen } from "@/components/reservation-screen"
 import { ConfirmationScreen } from "@/components/confirmation-screen"
 import { AdminScreen } from "@/components/admin-screen"
 import { UserDashboard } from "@/components/user-dashboard"
+import { PublicFlightsBoard } from "@/components/public-flights-board"
 import { mockFlights, mockUsers, agentUser, type User, type Flight, type Reservation } from "@/lib/store"
 
-type Screen = "login" | "register" | "search" | "reservation" | "confirmation" | "admin" | "dashboard"
+type Screen = "login" | "register" | "search" | "reservation" | "confirmation" | "admin" | "dashboard" | "public-flights"
 
 export default function Home() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("login")
@@ -159,6 +160,7 @@ export default function Home() {
         <LoginScreen
           onLogin={handleLogin}
           onRegisterClick={() => setCurrentScreen("register")}
+          onViewFlightsClick={() => setCurrentScreen("public-flights")}
         />
       )
 
@@ -167,6 +169,14 @@ export default function Home() {
         <RegisterScreen
           onRegister={handleRegister}
           onBackClick={() => setCurrentScreen("login")}
+        />
+      )
+
+    case "public-flights":
+      return (
+        <PublicFlightsBoard
+          flights={flights}
+          onBack={() => setCurrentScreen("login")}
         />
       )
 
