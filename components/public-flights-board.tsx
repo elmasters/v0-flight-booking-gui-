@@ -93,7 +93,7 @@ export function PublicFlightsBoard({ flights, onBack }: PublicFlightsBoardProps)
 
           {/* Flight Rows */}
           <div className="divide-y divide-[#1e3a5f]">
-            {sortedFlights.map((flight, index) => {
+            {sortedFlights.map((flight) => {
               const seatsAvailable = flight.asientosDisponibles.length
               const isLowSeats = seatsAvailable <= 5
               const isSoldOut = seatsAvailable === 0
@@ -101,10 +101,7 @@ export function PublicFlightsBoard({ flights, onBack }: PublicFlightsBoardProps)
               return (
                 <div
                   key={flight.id}
-                  className="grid grid-cols-6 gap-4 px-6 py-5 hover:bg-[#162d4d]/50 transition-colors"
-                  style={{
-                    animation: `fadeIn 0.3s ease-out ${index * 0.05}s both`,
-                  }}
+                  className="grid grid-cols-6 gap-4 px-6 py-5 hover:bg-[#162d4d]/50 transition-colors animate-in fade-in slide-in-from-bottom-2 duration-300"
                 >
                   {/* Flight Number */}
                   <div className="flex items-center gap-3">
@@ -189,18 +186,6 @@ export function PublicFlightsBoard({ flights, onBack }: PublicFlightsBoardProps)
         </div>
       </main>
 
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
-    </div>
+      </div>
   )
 }
