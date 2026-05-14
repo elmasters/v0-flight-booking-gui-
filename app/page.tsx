@@ -9,9 +9,11 @@ import { ConfirmationScreen } from "@/components/confirmation-screen"
 import { AdminScreen } from "@/components/admin-screen"
 import { UserDashboard } from "@/components/user-dashboard"
 import { PublicFlightsBoard } from "@/components/public-flights-board"
+import { CorreorScreen } from "@/components/correor-screen"
+import { RecuperarScreen } from "@/components/recuperar-screen"
 import { mockFlights, mockUsers, agentUser, type User, type Flight, type Reservation } from "@/lib/store"
 
-type Screen = "login" | "register" | "search" | "reservation" | "confirmation" | "admin" | "dashboard" | "public-flights"
+type Screen = "login" | "register" | "search" | "reservation" | "confirmation" | "admin" | "dashboard" | "public-flights" | "recuperar" | "correor"
 
 export default function Home() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("login")
@@ -20,6 +22,7 @@ export default function Home() {
   const [users, setUsers] = useState<User[]>(mockUsers)
   const [flights, setFlights] = useState<Flight[]>(mockFlights)
   const [reservations, setReservations] = useState<Reservation[]>([])
+  const [recoveryEmail, setRecoveryEmail] = useState<string>("") // Guardar el correo para recuperación
 
   // Login handler
   const handleLogin = (correo: string, password: string): boolean => {
@@ -56,10 +59,10 @@ export default function Home() {
     }
     setUsers([...users, newUser])
     setCurrentUser(newUser)
-    
+
     // Simular envio de correo de confirmacion
     console.log(`[Sistema] Correo de confirmacion enviado a: ${userData.correo}`)
-    
+
     setCurrentScreen("dashboard")
     return { success: true }
   }
@@ -149,7 +152,7 @@ export default function Home() {
     if (existingFlight) {
       return { success: false, error: "Ya existe un vuelo programado a esa hora" }
     }
-    
+
     setFlights(flights.map((f) => (f.id === updatedFlight.id ? updatedFlight : f)))
     return { success: true }
   }
@@ -161,7 +164,7 @@ export default function Home() {
     if (existingFlight) {
       return { success: false, error: "Ya existe un vuelo programado a esa hora" }
     }
-    
+
     const newFlight: Flight = {
       ...flightData,
       id: `flight-${Date.now()}`,
@@ -177,7 +180,7 @@ export default function Home() {
     if (hasActiveReservations) {
       return { success: false, error: "No se puede eliminar el vuelo porque tiene reservaciones activas" }
     }
-    
+
     setFlights(flights.filter((f) => f.id !== flightId))
     return { success: true }
   }
@@ -199,9 +202,9 @@ export default function Home() {
       setFlights(updatedFlights)
 
       // Mark the reservation as cancelled instead of removing it
-      setReservations(reservations.map((r) => 
-        r.id === reservationId 
-          ? { ...r, estado: "cancelado" as const, canceladoPor } 
+      setReservations(reservations.map((r) =>
+        r.id === reservationId
+          ? { ...r, estado: "cancelado" as const, canceladoPor }
           : r
       ))
 
@@ -213,6 +216,39 @@ export default function Home() {
     }
   }
 
+  // *** NUEVOS HANDLERS PARA RECUPERACIÓN DE CONTRASEÑA ***
+
+  // Handler para enviar correo de recuperación
+  const handleSendRecoveryEmail = (email: string): { success: boolean; error?: string } => {
+    // Verificar si el correo existe en el sistema
+    const userExists = users.some((u) => u.correo === email)
+
+    if (!userExists) {
+      return { success: false, error: "El correo no está registrado en el sistema" }
+    }
+
+    // Guardar el correo para la pantalla de confirmación
+    setRecoveryEmail(email)
+
+    // Simular envío de correo de recuperación
+    console.log(`[Sistema] Correo de recuperación enviado a: ${email}`)
+
+    return { success: true }
+  }
+
+  // Handler para cuando el usuario acepta en la pantalla de confirmación
+  const handleRecoveryAccept = () => {
+    // Volver al login después de confirmar
+    setCurrentScreen("login")
+    setRecoveryEmail("")
+  }
+
+  // Handler para volver atrás en la recuperación
+  const handleRecoveryBack = () => {
+    setCurrentScreen("login")
+    setRecoveryEmail("")
+  }
+
   // Render current screen
   switch (currentScreen) {
     case "login":
@@ -221,6 +257,7 @@ export default function Home() {
           onLogin={handleLogin}
           onRegisterClick={() => setCurrentScreen("register")}
           onViewFlightsClick={() => setCurrentScreen("public-flights")}
+          onViewRecuperarClick={() => setCurrentScreen("recuperar")}
         />
       )
 
@@ -237,6 +274,24 @@ export default function Home() {
         <PublicFlightsBoard
           flights={flights}
           onBack={() => setCurrentScreen("login")}
+        />
+      )
+
+    case "recuperar":
+      return (
+        <RecuperarScreen
+          onSendEmail={handleSendRecoveryEmail}
+          onBack={() => setCurrentScreen("login")}
+          onSuccess={() => setCurrentScreen("correor")}
+        />
+      )
+
+    case "correor":
+      return (
+        <CorreorScreen
+          email={recoveryEmail}
+          onAccept={handleRecoveryAccept}
+          onBack={handleRecoveryBack}
         />
       )
 
