@@ -11,9 +11,10 @@ interface LoginScreenProps {
   onLogin: (correo: string, password: string) => boolean
   onRegisterClick: () => void
   onViewFlightsClick: () => void
+  onViewRecuperarClick: () => void
 }
 
-export function LoginScreen({ onLogin, onRegisterClick, onViewFlightsClick }: LoginScreenProps) {
+export function LoginScreen({ onLogin, onRegisterClick, onViewFlightsClick , onViewRecuperarClick }: LoginScreenProps) {
   const [correo, setCorreo] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -86,6 +87,17 @@ export function LoginScreen({ onLogin, onRegisterClick, onViewFlightsClick }: Lo
                 <Plane className="w-4 h-4" />
                 Ver vuelos disponibles sin registrarte
               </button>
+
+                 <button
+                type="button"
+                onClick={onViewRecuperarClick}
+                className="text-sm text-primary hover:underline flex items-center justify-center gap-2 mx-auto mb-4"
+              >
+              
+               ¿Olvido su contraseña?
+              </button>
+
+
               <p className="text-muted-foreground text-sm">
                 ¿No tienes cuenta?
               </p>
