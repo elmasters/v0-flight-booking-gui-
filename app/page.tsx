@@ -9,9 +9,11 @@ import { ConfirmationScreen } from "@/components/confirmation-screen"
 import { AdminScreen } from "@/components/admin-screen"
 import { UserDashboard } from "@/components/user-dashboard"
 import { PublicFlightsBoard } from "@/components/public-flights-board"
+import { CorreorScreen } from "@/components/correor-screen"
+import { RecuperarScreen } from "@/components/recuperar-screen"
 import { mockFlights, mockUsers, agentUser, type User, type Flight, type Reservation } from "@/lib/store"
 
-type Screen = "login" | "register" | "search" | "reservation" | "confirmation" | "admin" | "dashboard" | "public-flights"
+type Screen = "login" | "register" | "search" | "reservation" | "confirmation" | "admin" | "dashboard" | "public-flights" | "recuperar" | "correor"
 
 export default function Home() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("login")
@@ -20,6 +22,7 @@ export default function Home() {
   const [users, setUsers] = useState<User[]>(mockUsers)
   const [flights, setFlights] = useState<Flight[]>(mockFlights)
   const [reservations, setReservations] = useState<Reservation[]>([])
+  const [recoveryEmail, setRecoveryEmail] = useState<string>("")
 
   // Login handler
   const handleLogin = (correo: string, password: string): boolean => {
@@ -56,10 +59,10 @@ export default function Home() {
     }
     setUsers([...users, newUser])
     setCurrentUser(newUser)
-    
+
     // Simular envio de correo de confirmacion
     console.log(`[Sistema] Correo de confirmacion enviado a: ${userData.correo}`)
-    
+
     setCurrentScreen("dashboard")
     return { success: true }
   }
@@ -149,7 +152,7 @@ export default function Home() {
     if (existingFlight) {
       return { success: false, error: "Ya existe un vuelo programado a esa hora" }
     }
-    
+
     setFlights(flights.map((f) => (f.id === updatedFlight.id ? updatedFlight : f)))
     return { success: true }
   }
@@ -161,7 +164,7 @@ export default function Home() {
     if (existingFlight) {
       return { success: false, error: "Ya existe un vuelo programado a esa hora" }
     }
-    
+
     const newFlight: Flight = {
       ...flightData,
       id: `flight-${Date.now()}`,
@@ -177,7 +180,7 @@ export default function Home() {
     if (hasActiveReservations) {
       return { success: false, error: "No se puede eliminar el vuelo porque tiene reservaciones activas" }
     }
-    
+
     setFlights(flights.filter((f) => f.id !== flightId))
     return { success: true }
   }
@@ -199,9 +202,9 @@ export default function Home() {
       setFlights(updatedFlights)
 
       // Mark the reservation as cancelled instead of removing it
-      setReservations(reservations.map((r) => 
-        r.id === reservationId 
-          ? { ...r, estado: "cancelado" as const, canceladoPor } 
+      setReservations(reservations.map((r) =>
+        r.id === reservationId
+          ? { ...r, estado: "cancelado" as const, canceladoPor }
           : r
       ))
 
@@ -221,6 +224,7 @@ export default function Home() {
           onLogin={handleLogin}
           onRegisterClick={() => setCurrentScreen("register")}
           onViewFlightsClick={() => setCurrentScreen("public-flights")}
+          onRecuperarrClick={() => setCurrentScreen("recuperar")}
         />
       )
 

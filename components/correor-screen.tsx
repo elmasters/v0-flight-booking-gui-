@@ -2,14 +2,15 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { CheckCircle, Mail, Plane } from "lucide-react"
+import { CheckCircle, Mail, ArrowLeft, LogIn } from "lucide-react"
 
-interface ConfirmationScreenProps {
-  email?: string // Opcional: para mostrar el correo al que se envió
+interface CorreorScreenProps {
+  email: string
   onAccept: () => void
+  onBack: () => void
 }
 
-export function ConfirmationScreen({ email, onAccept }: ConfirmationScreenProps) {
+export function CorreorScreen({ email, onAccept, onBack }: CorreorScreenProps) {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md text-center">
@@ -20,32 +21,38 @@ export function ConfirmationScreen({ email, onAccept }: ConfirmationScreenProps)
 
           <div className="space-y-2">
             <h1 className="text-2xl font-bold tracking-tight">
-              ¡RECUPERACIÓN EXITOSA!
+              ¡CORREO ENVIADO!
             </h1>
             <p className="text-muted-foreground">
-              Se ha enviado un correo de recuperación a tu dirección
+              Revisa tu bandeja de entrada
             </p>
           </div>
 
-          <div className="bg-muted/50 rounded-lg p-4 flex items-center gap-3">
-            <Mail className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-            <p className="text-sm text-left">
-              {email ? (
-                <>Hemos enviado las instrucciones a <strong>{email}</strong></>
-              ) : (
-                "Hemos enviado las instrucciones a tu correo electrónico"
-              )}
+          <div className="bg-muted/50 rounded-lg p-4">
+            <div className="flex items-center gap-3 mb-2">
+              <Mail className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+              <p className="text-sm text-left font-medium">
+                Se envió un correo de recuperación a:
+              </p>
+            </div>
+            <p className="text-sm font-mono bg-background p-2 rounded-md break-all">
+              {email}
+            </p>
+            <p className="text-xs text-muted-foreground mt-3">
+              Haz clic en el enlace que te enviamos para restablecer tu contraseña.
               <br />
-              <span className="text-xs text-muted-foreground">
-                Revisa tu bandeja de entrada y sigue los pasos para recuperar tu contraseña.
-              </span>
+              Revisa también la carpeta de spam.
             </p>
           </div>
 
-          <div className="pt-4">
-            <Button onClick={onAccept} className="w-full h-12 text-base">
-              <Plane className="w-4 h-4 mr-2" />
-              Aceptar
+          <div className="flex gap-3 pt-4">
+            <Button variant="outline" onClick={onBack} className="flex-1 h-12">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Volver
+            </Button>
+            <Button onClick={onAccept} className="flex-1 h-12 text-base">
+              <LogIn className="w-4 h-4 mr-2" />
+              Entendido
             </Button>
           </div>
         </CardContent>
