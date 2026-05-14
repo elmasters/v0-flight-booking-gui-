@@ -257,7 +257,7 @@ export default function Home() {
           onLogin={handleLogin}
           onRegisterClick={() => setCurrentScreen("register")}
           onViewFlightsClick={() => setCurrentScreen("public-flights")}
-          onRecuperarClick={() => setCurrentScreen("recuperar")}
+          onViweRecuperarClick={() => setCurrentScreen("recuperar")}
         />
       )
 
